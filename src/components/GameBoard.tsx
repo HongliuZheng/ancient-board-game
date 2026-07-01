@@ -5,6 +5,7 @@ import './GameBoard.css';
 
 const CELL_SIZE = 60;
 const BOARD_SIZE = 8;
+const DIAMOND_SIZE = 4; // 4x4 diamond cells
 
 export const GameBoard: React.FC = () => {
   const [engine] = useState(() => new GameEngine());
@@ -31,6 +32,38 @@ export const GameBoard: React.FC = () => {
   const state = engine.getState();
   const player1Pieces = state.pieces.filter(p => p.player === 1 && !p.isInLatrine).length;
   const player2Pieces = state.pieces.filter(p => p.player === 2 && !p.isInLatrine).length;
+
+  // Helper function to check if a diamond cell is the center latrine
+  const isDiamondLatrine = (row: number, col: number) => row === 1 && col === 1;
+
+  // Helper to render diamond cells
+  const renderDiamondCell = (row: number, col: number) => {
+    const isLatrine = isDiamondLatrine(row, col);
+    const isValidMove = state.validMoves.some(
+      m => m.x === col + BOARD_SIZE + 1 && m.y === row + (BOARD_SIZE - DIAMOND_SIZE) / 2
+    );
+    const isSelected = false; // Diamond cells are display-only for now
+    const boardIndex = col + (BOARD_SIZE - DIAMOND_SIZE) / 2;
+
+    return (
+      <div
+        key={`diamond-${row}-${col}`}
+        className={`diamond-cell ${isLatrine ? 'latrine' : ''} ${
+          isValidMove ? 'valid-move' : ''
+        } ${(row + col) % 2 === 0 ? 'light' : 'dark'}`}
+        style={{
+          width: CELL_SIZE,
+          height: CELL_SIZE,
+        }}
+      >
+        {isLatrine && (
+          <div className="latrine-center">
+            <span className="latrine-icon">🔒</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="game-container">
@@ -60,79 +93,162 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="board-wrapper">
-        <div className="board-container">
-          {/* Main game board */}
-          <div 
-            className="game-board"
-            style={{
-              width: CELL_SIZE * BOARD_SIZE,
-              height: CELL_SIZE * BOARD_SIZE,
-            }}
-          >
-            {Array.from({ length: BOARD_SIZE }).map((_, y) => (
-              <div key={y} className="board-row">
-                {Array.from({ length: BOARD_SIZE }).map((_, x) => {
-                  const piece = state.pieces.find(
-                    p => !p.isInLatrine && p.position.x === x && p.position.y === y
-                  );
-                  const isValidMove = state.validMoves.some(m => m.x === x && m.y === y);
-                  const isSelected =
-                    state.selectedPiece?.position.x === x && state.selectedPiece?.position.y === y;
-                  const isLatrine = x === 3 && y === 3;
+        <svg className="board-canvas" width={CELL_SIZE * 10} height={CELL_SIZE * 8}>
+          {/* Connection line from board to diamond */}
+          <line
+            x1={CELL_SIZE * 8}
+            y1={CELL_SIZE * 4}
+            x2={CELL_SIZE * 8.5}
+            y2={CELL_SIZE * 4}
+            stroke="#333"
+            strokeWidth="3"
+          />
+          
+          {/* Diamond outline */}
+          <polygon
+            points={`${CELL_SIZE * 8.5},${CELL_SIZE * 2} ${CELL_SIZE * 10},${CELL_SIZE * 4} ${CELL_SIZE * 8.5},${CELL_SIZE * 6} ${CELL_SIZE * 7},${CELL_SIZE * 4}`}
+            fill="none"
+            stroke="#333"
+            strokeWidth="3"
+          />
+          
+          {/* Diamond cross - extended to corners */}
+          {/* Vertical line */}
+          <line
+            x1={CELL_SIZE * 8.5}
+            y1={CELL_SIZE * 2}
+            x2={CELL_SIZE * 8.5}
+            y2={CELL_SIZE * 6}
+            stroke="#333"
+            strokeWidth="3"
+          />
+          
+          {/* Horizontal line */}
+          <line
+            x1={CELL_SIZE * 7}
+            y1={CELL_SIZE * 4}
+            x2={CELL_SIZE * 10}
+            y2={CELL_SIZE * 4}
+            stroke="#333"
+            strokeWidth="3"
+          />
+          
+          {/* Diamond inner cells (grid) */}
+          {/* Vertical dividers in diamond */}
+          <line
+            x1={CELL_SIZE * 8.25}
+            y1={CELL_SIZE * 2}
+            x2={CELL_SIZE * 8.25}
+            y2={CELL_SIZE * 6}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          <line
+            x1={CELL_SIZE * 8.75}
+            y1={CELL_SIZE * 2}
+            x2={CELL_SIZE * 8.75}
+            y2={CELL_SIZE * 6}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          
+          {/* Horizontal dividers in diamond */}
+          <line
+            x1={CELL_SIZE * 7}
+            y1={CELL_SIZE * 3}
+            x2={CELL_SIZE * 10}
+            y2={CELL_SIZE * 3}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          <line
+            x1={CELL_SIZE * 7}
+            y1={CELL_SIZE * 5}
+            x2={CELL_SIZE * 10}
+            y2={CELL_SIZE * 5}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          
+          {/* Diagonal lines for diamond cells */}
+          <line
+            x1={CELL_SIZE * 8.5}
+            y1={CELL_SIZE * 2}
+            x2={CELL_SIZE * 7}
+            y2={CELL_SIZE * 4}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          <line
+            x1={CELL_SIZE * 8.5}
+            y1={CELL_SIZE * 2}
+            x2={CELL_SIZE * 10}
+            y2={CELL_SIZE * 4}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          <line
+            x1={CELL_SIZE * 7}
+            y1={CELL_SIZE * 4}
+            x2={CELL_SIZE * 8.5}
+            y2={CELL_SIZE * 6}
+            stroke="#999"
+            strokeWidth="1"
+          />
+          <line
+            x1={CELL_SIZE * 10}
+            y1={CELL_SIZE * 4}
+            x2={CELL_SIZE * 8.5}
+            y2={CELL_SIZE * 6}
+            stroke="#999"
+            strokeWidth="1"
+          />
+        </svg>
 
-                  return (
-                    <div
-                      key={`${x}-${y}`}
-                      className={`board-cell ${isLatrine ? 'latrine' : ''} ${
-                        isValidMove ? 'valid-move' : ''
-                      } ${(x + y) % 2 === 0 ? 'light' : 'dark'}`}
-                      onClick={() => handleCellClick(x, y)}
-                      style={{
-                        width: CELL_SIZE,
-                        height: CELL_SIZE,
-                      }}
-                    >
-                      {piece && (
-                        <div
-                          className={`piece player${piece.player} ${
-                            isSelected ? 'selected' : ''
-                          }`}
-                        >
-                          <span className="piece-label">P{piece.player}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+        <div 
+          className="game-board"
+          style={{
+            width: CELL_SIZE * BOARD_SIZE,
+            height: CELL_SIZE * BOARD_SIZE,
+          }}
+        >
+          {Array.from({ length: BOARD_SIZE }).map((_, y) => (
+            <div key={y} className="board-row">
+              {Array.from({ length: BOARD_SIZE }).map((_, x) => {
+                const piece = state.pieces.find(
+                  p => !p.isInLatrine && p.position.x === x && p.position.y === y
+                );
+                const isValidMove = state.validMoves.some(m => m.x === x && m.y === y);
+                const isSelected =
+                  state.selectedPiece?.position.x === x && state.selectedPiece?.position.y === y;
+                const isLatrine = x === 3 && y === 3;
 
-          {/* Diamond symbol (latrine) on the right */}
-          <svg 
-            className="latrine-symbol"
-            viewBox="0 0 120 120"
-            width={120}
-            height={120}
-          >
-            {/* Outer diamond */}
-            <polygon
-              points="60,10 110,60 60,110 10,60"
-              fill="none"
-              stroke="#d4a574"
-              strokeWidth="3"
-            />
-            
-            {/* Inner cross (+ symbol) */}
-            {/* Vertical line */}
-            <line x1="60" y1="30" x2="60" y2="90" stroke="#d4a574" strokeWidth="3" />
-            
-            {/* Horizontal line */}
-            <line x1="30" y1="60" x2="90" y2="60" stroke="#d4a574" strokeWidth="3" />
-            
-            {/* Circle in center */}
-            <circle cx="60" cy="60" r="6" fill="#d4a574" />
-          </svg>
+                return (
+                  <div
+                    key={`${x}-${y}`}
+                    className={`board-cell ${isLatrine ? 'latrine' : ''} ${
+                      isValidMove ? 'valid-move' : ''
+                    } ${(x + y) % 2 === 0 ? 'light' : 'dark'}`}
+                    onClick={() => handleCellClick(x, y)}
+                    style={{
+                      width: CELL_SIZE,
+                      height: CELL_SIZE,
+                    }}
+                  >
+                    {piece && (
+                      <div
+                        className={`piece player${piece.player} ${
+                          isSelected ? 'selected' : ''
+                        }`}
+                      >
+                        <span className="piece-label">P{piece.player}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
