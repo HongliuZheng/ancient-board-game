@@ -60,50 +60,79 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="board-wrapper">
-        <div 
-          className="game-board"
-          style={{
-            width: CELL_SIZE * BOARD_SIZE,
-            height: CELL_SIZE * BOARD_SIZE,
-          }}
-        >
-          {Array.from({ length: BOARD_SIZE }).map((_, y) => (
-            <div key={y} className="board-row">
-              {Array.from({ length: BOARD_SIZE }).map((_, x) => {
-                const piece = state.pieces.find(
-                  p => !p.isInLatrine && p.position.x === x && p.position.y === y
-                );
-                const isValidMove = state.validMoves.some(m => m.x === x && m.y === y);
-                const isSelected =
-                  state.selectedPiece?.position.x === x && state.selectedPiece?.position.y === y;
-                const isLatrine = x === 3 && y === 3;
+        <div className="board-container">
+          {/* Main game board */}
+          <div 
+            className="game-board"
+            style={{
+              width: CELL_SIZE * BOARD_SIZE,
+              height: CELL_SIZE * BOARD_SIZE,
+            }}
+          >
+            {Array.from({ length: BOARD_SIZE }).map((_, y) => (
+              <div key={y} className="board-row">
+                {Array.from({ length: BOARD_SIZE }).map((_, x) => {
+                  const piece = state.pieces.find(
+                    p => !p.isInLatrine && p.position.x === x && p.position.y === y
+                  );
+                  const isValidMove = state.validMoves.some(m => m.x === x && m.y === y);
+                  const isSelected =
+                    state.selectedPiece?.position.x === x && state.selectedPiece?.position.y === y;
+                  const isLatrine = x === 3 && y === 3;
 
-                return (
-                  <div
-                    key={`${x}-${y}`}
-                    className={`board-cell ${isLatrine ? 'latrine' : ''} ${
-                      isValidMove ? 'valid-move' : ''
-                    } ${(x + y) % 2 === 0 ? 'light' : 'dark'}`}
-                    onClick={() => handleCellClick(x, y)}
-                    style={{
-                      width: CELL_SIZE,
-                      height: CELL_SIZE,
-                    }}
-                  >
-                    {piece && (
-                      <div
-                        className={`piece player${piece.player} ${
-                          isSelected ? 'selected' : ''
-                        }`}
-                      >
-                        <span className="piece-label">P{piece.player}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                  return (
+                    <div
+                      key={`${x}-${y}`}
+                      className={`board-cell ${isLatrine ? 'latrine' : ''} ${
+                        isValidMove ? 'valid-move' : ''
+                      } ${(x + y) % 2 === 0 ? 'light' : 'dark'}`}
+                      onClick={() => handleCellClick(x, y)}
+                      style={{
+                        width: CELL_SIZE,
+                        height: CELL_SIZE,
+                      }}
+                    >
+                      {piece && (
+                        <div
+                          className={`piece player${piece.player} ${
+                            isSelected ? 'selected' : ''
+                          }`}
+                        >
+                          <span className="piece-label">P{piece.player}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Diamond symbol (latrine) on the right */}
+          <svg 
+            className="latrine-symbol"
+            viewBox="0 0 120 120"
+            width={120}
+            height={120}
+          >
+            {/* Outer diamond */}
+            <polygon
+              points="60,10 110,60 60,110 10,60"
+              fill="none"
+              stroke="#d4a574"
+              strokeWidth="3"
+            />
+            
+            {/* Inner cross (+ symbol) */}
+            {/* Vertical line */}
+            <line x1="60" y1="30" x2="60" y2="90" stroke="#d4a574" strokeWidth="3" />
+            
+            {/* Horizontal line */}
+            <line x1="30" y1="60" x2="90" y2="60" stroke="#d4a574" strokeWidth="3" />
+            
+            {/* Circle in center */}
+            <circle cx="60" cy="60" r="6" fill="#d4a574" />
+          </svg>
         </div>
       </div>
 
