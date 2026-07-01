@@ -76,6 +76,12 @@
   margin-bottom: 20px;
 }
 
+.board-container {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
 .game-board {
   display: inline-grid;
   grid-template-columns: repeat(8, 1fr);
@@ -84,6 +90,21 @@
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   background: #f5f5f5;
+}
+
+.latrine-symbol {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  animation: latrine-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes latrine-pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .board-row {
@@ -243,6 +264,18 @@
   font-weight: bold;
 }
 
+@media (max-width: 1024px) {
+  .board-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .latrine-symbol {
+    width: 100px;
+    height: 100px;
+  }
+}
+
 @media (max-width: 768px) {
   .game-container {
     padding: 10px;
@@ -256,6 +289,10 @@
     max-width: 100%;
   }
 
+  .board-container {
+    gap: 10px;
+  }
+
   .board-cell {
     width: 45px !important;
     height: 45px !important;
@@ -265,5 +302,10 @@
     width: 35px;
     height: 35px;
     font-size: 0.7em;
+  }
+
+  .latrine-symbol {
+    width: 80px;
+    height: 80px;
   }
 }
