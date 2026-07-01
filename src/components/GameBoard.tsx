@@ -5,7 +5,6 @@ import './GameBoard.css';
 
 const CELL_SIZE = 60;
 const BOARD_SIZE = 8;
-const DIAMOND_SIZE = 4; // 4x4 diamond cells
 
 export const GameBoard: React.FC = () => {
   const [engine] = useState(() => new GameEngine());
@@ -33,37 +32,17 @@ export const GameBoard: React.FC = () => {
   const player1Pieces = state.pieces.filter(p => p.player === 1 && !p.isInLatrine).length;
   const player2Pieces = state.pieces.filter(p => p.player === 2 && !p.isInLatrine).length;
 
-  // Helper function to check if a diamond cell is the center latrine
-  const isDiamondLatrine = (row: number, col: number) => row === 1 && col === 1;
+  // SVG dimensions
+  const squareBoardWidth = CELL_SIZE * BOARD_SIZE;
+  const squareBoardHeight = CELL_SIZE * BOARD_SIZE;
+  const diamondSize = CELL_SIZE * 4;
+  const totalWidth = squareBoardWidth + diamondSize + 20;
+  const totalHeight = squareBoardHeight;
 
-  // Helper to render diamond cells
-  const renderDiamondCell = (row: number, col: number) => {
-    const isLatrine = isDiamondLatrine(row, col);
-    const isValidMove = state.validMoves.some(
-      m => m.x === col + BOARD_SIZE + 1 && m.y === row + (BOARD_SIZE - DIAMOND_SIZE) / 2
-    );
-    const isSelected = false; // Diamond cells are display-only for now
-    const boardIndex = col + (BOARD_SIZE - DIAMOND_SIZE) / 2;
-
-    return (
-      <div
-        key={`diamond-${row}-${col}`}
-        className={`diamond-cell ${isLatrine ? 'latrine' : ''} ${
-          isValidMove ? 'valid-move' : ''
-        } ${(row + col) % 2 === 0 ? 'light' : 'dark'}`}
-        style={{
-          width: CELL_SIZE,
-          height: CELL_SIZE,
-        }}
-      >
-        {isLatrine && (
-          <div className="latrine-center">
-            <span className="latrine-icon">🔒</span>
-          </div>
-        )}
-      </div>
-    );
-  };
+  // Diamond position (right side, vertically centered)
+  const diamondCenterX = squareBoardWidth + diamondSize / 2 + 10;
+  const diamondCenterY = squareBoardHeight / 2;
+  const diamondRadius = diamondSize / 2;
 
   return (
     <div className="game-container">
@@ -93,115 +72,101 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="board-wrapper">
-        <svg className="board-canvas" width={CELL_SIZE * 10} height={CELL_SIZE * 8}>
-          {/* Connection line from board to diamond */}
+        <svg 
+          className="unified-board"
+          width={totalWidth} 
+          height={totalHeight}
+          viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+          style={{ position: 'absolute' }}
+        >
+          {/* Connection line from square board to diamond */}
           <line
-            x1={CELL_SIZE * 8}
-            y1={CELL_SIZE * 4}
-            x2={CELL_SIZE * 8.5}
-            y2={CELL_SIZE * 4}
+            x1={squareBoardWidth}
+            y1={squareBoardHeight / 2}
+            x2={diamondCenterX - diamondRadius}
+            y2={diamondCenterY}
             stroke="#333"
             strokeWidth="3"
           />
-          
+
           {/* Diamond outline */}
           <polygon
-            points={`${CELL_SIZE * 8.5},${CELL_SIZE * 2} ${CELL_SIZE * 10},${CELL_SIZE * 4} ${CELL_SIZE * 8.5},${CELL_SIZE * 6} ${CELL_SIZE * 7},${CELL_SIZE * 4}`}
+            points={`${diamondCenterX},${diamondCenterY - diamondRadius} ${diamondCenterX + diamondRadius},${diamondCenterY} ${diamondCenterX},${diamondCenterY + diamondRadius} ${diamondCenterX - diamondRadius},${diamondCenterY}`}
             fill="none"
             stroke="#333"
             strokeWidth="3"
           />
-          
+
           {/* Diamond cross - extended to corners */}
-          {/* Vertical line */}
+          {/* Vertical line extending to top and bottom corners */}
           <line
-            x1={CELL_SIZE * 8.5}
-            y1={CELL_SIZE * 2}
-            x2={CELL_SIZE * 8.5}
-            y2={CELL_SIZE * 6}
+            x1={diamondCenterX}
+            y1={diamondCenterY - diamondRadius}
+            x2={diamondCenterX}
+            y2={diamondCenterY + diamondRadius}
             stroke="#333"
             strokeWidth="3"
           />
-          
-          {/* Horizontal line */}
+
+          {/* Horizontal line extending to left and right corners */}
           <line
-            x1={CELL_SIZE * 7}
-            y1={CELL_SIZE * 4}
-            x2={CELL_SIZE * 10}
-            y2={CELL_SIZE * 4}
+            x1={diamondCenterX - diamondRadius}
+            y1={diamondCenterY}
+            x2={diamondCenterX + diamondRadius}
+            y2={diamondCenterY}
             stroke="#333"
             strokeWidth="3"
           />
-          
-          {/* Diamond inner cells (grid) */}
-          {/* Vertical dividers in diamond */}
+
+          {/* Diamond quadrant subdivisions */}
+          {/* Top-left to center */}
           <line
-            x1={CELL_SIZE * 8.25}
-            y1={CELL_SIZE * 2}
-            x2={CELL_SIZE * 8.25}
-            y2={CELL_SIZE * 6}
+            x1={diamondCenterX - diamondRadius / 2}
+            y1={diamondCenterY - diamondRadius / 2}
+            x2={diamondCenterX}
+            y2={diamondCenterY}
             stroke="#999"
             strokeWidth="1"
           />
+
+          {/* Top-right to center */}
           <line
-            x1={CELL_SIZE * 8.75}
-            y1={CELL_SIZE * 2}
-            x2={CELL_SIZE * 8.75}
-            y2={CELL_SIZE * 6}
+            x1={diamondCenterX + diamondRadius / 2}
+            y1={diamondCenterY - diamondRadius / 2}
+            x2={diamondCenterX}
+            y2={diamondCenterY}
             stroke="#999"
             strokeWidth="1"
           />
-          
-          {/* Horizontal dividers in diamond */}
+
+          {/* Bottom-left to center */}
           <line
-            x1={CELL_SIZE * 7}
-            y1={CELL_SIZE * 3}
-            x2={CELL_SIZE * 10}
-            y2={CELL_SIZE * 3}
+            x1={diamondCenterX - diamondRadius / 2}
+            y1={diamondCenterY + diamondRadius / 2}
+            x2={diamondCenterX}
+            y2={diamondCenterY}
             stroke="#999"
             strokeWidth="1"
           />
+
+          {/* Bottom-right to center */}
           <line
-            x1={CELL_SIZE * 7}
-            y1={CELL_SIZE * 5}
-            x2={CELL_SIZE * 10}
-            y2={CELL_SIZE * 5}
+            x1={diamondCenterX + diamondRadius / 2}
+            y1={diamondCenterY + diamondRadius / 2}
+            x2={diamondCenterX}
+            y2={diamondCenterY}
             stroke="#999"
             strokeWidth="1"
           />
-          
-          {/* Diagonal lines for diamond cells */}
-          <line
-            x1={CELL_SIZE * 8.5}
-            y1={CELL_SIZE * 2}
-            x2={CELL_SIZE * 7}
-            y2={CELL_SIZE * 4}
-            stroke="#999"
-            strokeWidth="1"
-          />
-          <line
-            x1={CELL_SIZE * 8.5}
-            y1={CELL_SIZE * 2}
-            x2={CELL_SIZE * 10}
-            y2={CELL_SIZE * 4}
-            stroke="#999"
-            strokeWidth="1"
-          />
-          <line
-            x1={CELL_SIZE * 7}
-            y1={CELL_SIZE * 4}
-            x2={CELL_SIZE * 8.5}
-            y2={CELL_SIZE * 6}
-            stroke="#999"
-            strokeWidth="1"
-          />
-          <line
-            x1={CELL_SIZE * 10}
-            y1={CELL_SIZE * 4}
-            x2={CELL_SIZE * 8.5}
-            y2={CELL_SIZE * 6}
-            stroke="#999"
-            strokeWidth="1"
+
+          {/* Center lock indicator circle */}
+          <circle
+            cx={diamondCenterX}
+            cy={diamondCenterY}
+            r="6"
+            fill="#d4a574"
+            stroke="#333"
+            strokeWidth="2"
           />
         </svg>
 
