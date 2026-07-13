@@ -1,7 +1,7 @@
 import { GameState, Piece, Position, MoveRecord } from '../types';
 
-const BOARD_SIZE = 8;
-const LATRINE_POS = { x: 3, y: 3 }; // Center of 8x8 board
+const BOARD_SIZE = 4;
+const LATRINE_POS = { x: BOARD_SIZE / 2 - 1, y: BOARD_SIZE / 2 - 1 };
 
 export class GameEngine {
   private state: GameState;
@@ -13,18 +13,18 @@ export class GameEngine {
   private initializeGame(): GameState {
     const pieces: Piece[] = [];
 
-    // Initialize player 1 pieces (bottom row, y=7)
-    for (let i = 0; i < 5; i++) {
+    // Initialize player 1 pieces (bottom row)
+    for (let i = 0; i < BOARD_SIZE; i++) {
       pieces.push({
         id: `p1-${i}`,
         player: 1,
-        position: { x: i, y: 7 },
+        position: { x: i, y: BOARD_SIZE - 1 },
         isInLatrine: false,
       });
     }
 
-    // Initialize player 2 pieces (top row, y=0)
-    for (let i = 0; i < 5; i++) {
+    // Initialize player 2 pieces (top row)
+    for (let i = 0; i < BOARD_SIZE; i++) {
       pieces.push({
         id: `p2-${i}`,
         player: 2,

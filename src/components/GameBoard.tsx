@@ -4,7 +4,7 @@ import { Piece, Position, GameState } from '../types';
 import './GameBoard.css';
 
 const CELL_SIZE = 60;
-const BOARD_SIZE = 8;
+const BOARD_SIZE = 4;
 
 export const GameBoard: React.FC = () => {
   const [engine] = useState(() => new GameEngine());
@@ -31,11 +31,13 @@ export const GameBoard: React.FC = () => {
   const state = engine.getState();
   const player1Pieces = state.pieces.filter(p => p.player === 1 && !p.isInLatrine).length;
   const player2Pieces = state.pieces.filter(p => p.player === 2 && !p.isInLatrine).length;
+  const player1BowlPieces = Array.from({ length: player1Pieces });
+  const player2BowlPieces = Array.from({ length: player2Pieces });
 
   // SVG dimensions
   const squareBoardWidth = CELL_SIZE * BOARD_SIZE;
   const squareBoardHeight = CELL_SIZE * BOARD_SIZE;
-  const diamondSize = CELL_SIZE * 4;
+  const diamondSize = CELL_SIZE * 4; // visual diamond size to the right
   const totalWidth = squareBoardWidth + diamondSize + 20;
   const totalHeight = squareBoardHeight;
 
@@ -71,13 +73,32 @@ export const GameBoard: React.FC = () => {
         </div>
       </div>
 
-      <div className="board-wrapper">
+      <div className="bowl-row">
+        <div className="bowl bowl-player1">
+          <div className="bowl-title">Player 1 Bowl</div>
+          <div className="bowl-pieces">
+            {player1BowlPieces.map((_, idx) => (
+              <span key={idx} className="bowl-piece player1" />
+            ))}
+          </div>
+        </div>
+        <div className="bowl bowl-player2">
+          <div className="bowl-title">Player 2 Bowl</div>
+          <div className="bowl-pieces">
+            {player2BowlPieces.map((_, idx) => (
+              <span key={idx} className="bowl-piece player2" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="board-wrapper" style={{ position: 'relative', width: totalWidth, height: totalHeight }}>
         <svg 
           className="unified-board"
           width={totalWidth} 
           height={totalHeight}
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', left: 0, top: 0 }}
         >
           {/* Connection line from square board to diamond */}
           <line
@@ -95,6 +116,14 @@ export const GameBoard: React.FC = () => {
             fill="none"
             stroke="#333"
             strokeWidth="3"
+          />
+
+          {/* Inner square (diamond) inside the main square: corners touch midpoints of square sides */}
+          <polygon
+            points={`${squareBoardWidth / 2},0 ${squareBoardWidth},${squareBoardHeight / 2} ${squareBoardWidth / 2},${squareBoardHeight} 0,${squareBoardHeight / 2}`}
+            fill="none"
+            stroke="#666"
+            strokeWidth="2"
           />
 
           {/* Diamond cross - extended to corners */}
@@ -118,47 +147,6 @@ export const GameBoard: React.FC = () => {
             strokeWidth="3"
           />
 
-          {/* Diamond quadrant subdivisions */}
-          {/* Top-left to center */}
-          <line
-            x1={diamondCenterX - diamondRadius / 2}
-            y1={diamondCenterY - diamondRadius / 2}
-            x2={diamondCenterX}
-            y2={diamondCenterY}
-            stroke="#999"
-            strokeWidth="1"
-          />
-
-          {/* Top-right to center */}
-          <line
-            x1={diamondCenterX + diamondRadius / 2}
-            y1={diamondCenterY - diamondRadius / 2}
-            x2={diamondCenterX}
-            y2={diamondCenterY}
-            stroke="#999"
-            strokeWidth="1"
-          />
-
-          {/* Bottom-left to center */}
-          <line
-            x1={diamondCenterX - diamondRadius / 2}
-            y1={diamondCenterY + diamondRadius / 2}
-            x2={diamondCenterX}
-            y2={diamondCenterY}
-            stroke="#999"
-            strokeWidth="1"
-          />
-
-          {/* Bottom-right to center */}
-          <line
-            x1={diamondCenterX + diamondRadius / 2}
-            y1={diamondCenterY + diamondRadius / 2}
-            x2={diamondCenterX}
-            y2={diamondCenterY}
-            stroke="#999"
-            strokeWidth="1"
-          />
-
           {/* Center lock indicator circle */}
           <circle
             cx={diamondCenterX}
@@ -175,18 +163,17 @@ export const GameBoard: React.FC = () => {
           style={{
             width: CELL_SIZE * BOARD_SIZE,
             height: CELL_SIZE * BOARD_SIZE,
+            position: 'absolute',
+            left: 0,
+            top: 0,
           }}
         >
           {Array.from({ length: BOARD_SIZE }).map((_, y) => (
             <div key={y} className="board-row">
               {Array.from({ length: BOARD_SIZE }).map((_, x) => {
-                const piece = state.pieces.find(
-                  p => !p.isInLatrine && p.position.x === x && p.position.y === y
-                );
                 const isValidMove = state.validMoves.some(m => m.x === x && m.y === y);
-                const isSelected =
-                  state.selectedPiece?.position.x === x && state.selectedPiece?.position.y === y;
-                const isLatrine = x === 3 && y === 3;
+                const LATRINE_POS = { x: BOARD_SIZE / 2 - 1, y: BOARD_SIZE / 2 - 1 };
+                const isLatrine = x === LATRINE_POS.x && y === LATRINE_POS.y;
 
                 return (
                   <div
@@ -199,17 +186,7 @@ export const GameBoard: React.FC = () => {
                       width: CELL_SIZE,
                       height: CELL_SIZE,
                     }}
-                  >
-                    {piece && (
-                      <div
-                        className={`piece player${piece.player} ${
-                          isSelected ? 'selected' : ''
-                        }`}
-                      >
-                        <span className="piece-label">P{piece.player}</span>
-                      </div>
-                    )}
-                  </div>
+                  />
                 );
               })}
             </div>
